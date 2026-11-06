@@ -51,7 +51,7 @@ export function fireMainAttack(battleScreenPtr, ownCharacter, x, y, hold) {
         const skillArg = skill && !skill.isNull() ? skill : NULL;
         let mode = 0;
         try {
-            mode = battleScreenPtr.add(offsets.BattleScreen_fireMode).readS32();
+            mode = battleScreenPtr.add(0xf04).readS32();
         } catch (_) {}
         return fns.BattleScreen_fire(battleScreenPtr, ownCharacter, skillArg, x | 0, y | 0, !!hold, mode | 0) !== 0;
     } catch (_) {

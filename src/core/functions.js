@@ -13,6 +13,21 @@ function _nf(name, ret, args) {
     }
 }
 
+export const FUNCTION_RVA = Object.freeze({
+    BattleScreen_fire: 0x7ae364,
+    ClientCharacter_getSkill: 0x9fc3c0,
+    LogicProjectileClient_getTargetX: 0x9cdaac,
+    LogicProjectileClient_getTargetY: 0x9cdab4
+});
+
+function _nfa(rva, ret, args) {
+    try {
+        return new NativeFunction(base.add(rva), ret, args);
+    } catch (_) {
+        return null;
+    }
+}
+
 function _sys(name, ret, args) {
     try {
         const p = _sysAddr(name);
@@ -66,10 +81,10 @@ export function initFunctions(baseIn = Process.mainModule.base) {
         BattleScreen_tryToActivateSkill: _nf("BattleScreen_tryToActivateSkill", "void", ["pointer", "pointer", "pointer", "int32", "int32", "bool", "int32"]),
         BattleScreen_activateSkill: _nf("BattleScreen_activateSkill", "bool", ["int32", "int32", "pointer", "pointer", "bool", "int32"]),
         BattleScreen_getClosestTargetForAutoshoot: _nf("BattleScreen_getClosestTargetForAutoshoot", "pointer", ["pointer", "pointer", "int32", "bool", "bool", "pointer", "bool", "bool"]),
-        BattleScreen_fire: _nf("BattleScreen_fire", "int", ["pointer", "pointer", "pointer", "int32", "int32", "bool", "int32"]),
-        ClientCharacter_getSkill: _nf("ClientCharacter_getSkill", "pointer", ["pointer", "int32"]),
-        LogicProjectileClient_getTargetX: _nf("LogicProjectileClient_getTargetX", "int32", ["pointer"]),
-        LogicProjectileClient_getTargetY: _nf("LogicProjectileClient_getTargetY", "int32", ["pointer"]),
+        BattleScreen_fire: _nfa(FUNCTION_RVA.BattleScreen_fire, "int", ["pointer", "pointer", "pointer", "int32", "int32", "bool", "int32"]),
+        ClientCharacter_getSkill: _nfa(FUNCTION_RVA.ClientCharacter_getSkill, "pointer", ["pointer", "int32"]),
+        LogicProjectileClient_getTargetX: _nfa(FUNCTION_RVA.LogicProjectileClient_getTargetX, "int32", ["pointer"]),
+        LogicProjectileClient_getTargetY: _nfa(FUNCTION_RVA.LogicProjectileClient_getTargetY, "int32", ["pointer"]),
 
         malloc: mallocPtr ? new NativeFunction(mallocPtr, "pointer", ["size_t"]) : null,
         free: freePtr ? new NativeFunction(freePtr, "void", ["pointer"]) : null,

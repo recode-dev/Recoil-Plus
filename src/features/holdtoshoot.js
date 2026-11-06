@@ -80,8 +80,8 @@ export function onUpdateMovementEnter(args, now) {
     let attackHeld = false;
     let superHeld = false;
     try {
-        attackHeld = battleScreen.add(offsets.BattleScreen_attackButtonHeld).readU8() === 1;
-        superHeld = battleScreen.add(offsets.BattleScreen_superButtonHeld).readU8() === 1;
+        attackHeld = battleScreen.add(0x1041).readU8() === 1;
+        superHeld = battleScreen.add(0x1042).readU8() === 1;
     } catch (_) {}
     handleMovementAndCombatAssist(battleScreen, attackHeld, superHeld, now);
 }

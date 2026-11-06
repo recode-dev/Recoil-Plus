@@ -1,5 +1,5 @@
 import { offsets } from "./core/offsets.js";
-import { initFunctions } from "./core/functions.js";
+import { initFunctions, FUNCTION_RVA } from "./core/functions.js";
 import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scan.js";
 import { installTileMapWatcher } from "./utils/walls.js";
 import { onFireEnter, onGetClosestTargetLeave, resetAimbot, setAimbotOptions } from "./features/aimbot.js";
@@ -137,7 +137,7 @@ function finishInstall(mod) {
         }
     });
 
-    Interceptor.attach(mod.base.add(offsets.BattleScreen_fire), {
+    Interceptor.attach(mod.base.add(FUNCTION_RVA.BattleScreen_fire), {
         onEnter(args) {
             try {
                 onFireEnter(args);
