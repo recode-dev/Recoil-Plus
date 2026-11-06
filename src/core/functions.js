@@ -13,13 +13,30 @@ function _nf(name, ret, args) {
     }
 }
 
+function _sys(name, ret, args) {
+    try {
+        const p = _sysAddr(name);
+        return p ? new NativeFunction(p, ret, args) : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function _sysAddr(name) {
+    try {
+        const p = Module.findGlobalExportByName(name) || Module.findExportByName("libSystem.B.dylib", name) || Module.findExportByName(null, name);
+        return p && !p.isNull() ? p : null;
+    } catch (_) {
+        return null;
+    }
+}
+
 export function initFunctions(baseIn = Process.mainModule.base) {
     if (_n) return _n;
     base = baseIn;
 
-    const libSystem = "libSystem.B.dylib";
-    const mallocPtr = Module.findExportByName(libSystem, "malloc") || Module.findExportByName(null, "malloc");
-    const freePtr = Module.findExportByName(libSystem, "free") || Module.findExportByName(null, "free");
+    const mallocPtr = _sysAddr("malloc");
+    const freePtr = _sysAddr("free");
 
     _n = {
         BattleMode_getInstance: _nf("BattleMode_getInstance", "pointer", []),
@@ -49,9 +66,14 @@ export function initFunctions(baseIn = Process.mainModule.base) {
         BattleScreen_tryToActivateSkill: _nf("BattleScreen_tryToActivateSkill", "void", ["pointer", "pointer", "pointer", "int32", "int32", "bool", "int32"]),
         BattleScreen_activateSkill: _nf("BattleScreen_activateSkill", "bool", ["int32", "int32", "pointer", "pointer", "bool", "int32"]),
         BattleScreen_getClosestTargetForAutoshoot: _nf("BattleScreen_getClosestTargetForAutoshoot", "pointer", ["pointer", "pointer", "int32", "bool", "bool", "pointer", "bool", "bool"]),
+        BattleScreen_fire: _nf("BattleScreen_fire", "int", ["pointer", "pointer", "pointer", "int32", "int32", "bool", "int32"]),
+        ClientCharacter_getSkill: _nf("ClientCharacter_getSkill", "pointer", ["pointer", "int32"]),
+        LogicProjectileClient_getTargetX: _nf("LogicProjectileClient_getTargetX", "int32", ["pointer"]),
+        LogicProjectileClient_getTargetY: _nf("LogicProjectileClient_getTargetY", "int32", ["pointer"]),
 
         malloc: mallocPtr ? new NativeFunction(mallocPtr, "pointer", ["size_t"]) : null,
         free: freePtr ? new NativeFunction(freePtr, "void", ["pointer"]) : null,
+        memset: _sys("memset", "pointer", ["pointer", "int", "size_t"]),
     };
 
     Object.freeze(_n);

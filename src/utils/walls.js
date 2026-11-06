@@ -8,10 +8,99 @@ var tileMapWidth = 0;
 var tileMapHeight = 0;
 var tileFlagsBytes = null;
 var lastTileMapPtr = null;
+var currentTileMapPtr = null;
+var tileMapHookInstalled = false;
+var tileMapPollInstalled = false;
 
 export var wallsConfig = {
     enabled: true
 };
+
+export function installTileMapWatcher(imageBase) {
+    if (tileMapHookInstalled) return;
+    try {
+        Interceptor.attach(imageBase.add(offsets.LogicTileMap_getTile), {
+            onEnter(args) {
+                currentTileMapPtr = args[0];
+            }
+        });
+        tileMapHookInstalled = true;
+    } catch (_) {}
+    if (!tileMapPollInstalled) {
+        tileMapPollInstalled = true;
+        setInterval(function () {
+            if (currentTileMapPtr && !currentTileMapPtr.isNull()) {
+                try {
+                    refreshTileCollisionCache(currentTileMapPtr);
+                } catch (_) {}
+            }
+        }, 1000);
+    }
+}
+
+export function getCollisionMap() {
+    return tileFlagsBytes;
+}
+
+export function getMapWidth() {
+    return tileMapWidth;
+}
+
+export function getMapHeight() {
+    return tileMapHeight;
+}
+
+export function clipLineAgainstProjectileBlockers(startX, startY, endX, endY) {
+    const result = { x: endX, y: endY, blocked: false };
+    const mapW = getMapWidth();
+    const mapH = getMapHeight();
+    if (!mapW || !mapH) return result;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    if (Math.hypot(dx, dy) < 1e-6) return result;
+    let tx = (startX / SUBTILES_PER_TILE) | 0;
+    let ty = (startY / SUBTILES_PER_TILE) | 0;
+    const ex = (endX / SUBTILES_PER_TILE) | 0;
+    const ey = (endY / SUBTILES_PER_TILE) | 0;
+    if (tx < 0 || ty < 0 || tx >= mapW || ty >= mapH) {
+        result.x = startX;
+        result.y = startY;
+        result.blocked = true;
+        return result;
+    }
+    const sx = dx > 0 ? 1 : dx < 0 ? -1 : 0;
+    const sy = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+    let tMaxX = ((sx > 0 ? tx + 1 : tx) * SUBTILES_PER_TILE - startX) / dx;
+    let tMaxY = ((sy > 0 ? ty + 1 : ty) * SUBTILES_PER_TILE - startY) / dy;
+    const tDeltaX = dx !== 0 ? Math.abs(SUBTILES_PER_TILE / dx) : Infinity;
+    const tDeltaY = dy !== 0 ? Math.abs(SUBTILES_PER_TILE / dy) : Infinity;
+    const collisionMap = getCollisionMap();
+    const clear = (cx, cy) => cx >= 0 && cy >= 0 && cx < mapW && cy < mapH && (collisionMap[cy * mapW + cx] & FLAG_BLOCKS_PROJECTILE) === 0;
+    const maxSteps = 2 * (mapW + mapH);
+    let steps = 0;
+    while ((tx !== ex || ty !== ey) && steps++ < maxSteps) {
+        if (tMaxX < tMaxY) {
+            tx += sx;
+            if (!clear(tx, ty)) {
+                result.x = startX + dx * tMaxX;
+                result.y = startY + dy * tMaxX;
+                result.blocked = true;
+                return result;
+            }
+            tMaxX += tDeltaX;
+        } else {
+            ty += sy;
+            if (!clear(tx, ty)) {
+                result.x = startX + dx * tMaxY;
+                result.y = startY + dy * tMaxY;
+                result.blocked = true;
+                return result;
+            }
+            tMaxY += tDeltaY;
+        }
+    }
+    return result;
+}
 
 export function setWallsOptions(opts = {}) {
     if (typeof opts.enabled === "boolean") wallsConfig.enabled = opts.enabled;
