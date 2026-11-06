@@ -60,10 +60,6 @@ export function sendReleaseAttack(x, y, skillPtr = NULL) {
     });
 }
 
-export function sendHypercharge() {
-    return sendCommand(17, null);
-}
-
 export function setBattleScreenAim(battleScreenPtr, x, y, isUlti = false) {
     if (!battleScreenPtr || battleScreenPtr.isNull()) return false;
     try {
