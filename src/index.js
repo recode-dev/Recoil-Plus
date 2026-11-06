@@ -7,7 +7,7 @@ import { tryKillauraFire, resetKillaura, setKillauraOptions } from "./features/k
 import { onUpdateMovementEnter, resetHoldToShoot, setHoldToShootOptions } from "./features/holdtoshoot.js";
 import { updateAutododge, resetAutododge, setAutododgeOptions } from "./features/autododge.js";
 
-const MODULE_NAME = "nullsbrawl";
+const MODULE_NAME = "Nulls Brawl";
 const retryIntervalMs = 500;
 const retryMaxAttempts = 40;
 
