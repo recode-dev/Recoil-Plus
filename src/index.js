@@ -2,6 +2,7 @@ import { offsets } from "./core/offsets.js";
 import { initFunctions } from "./core/functions.js";
 import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scan.js";
 import { installTileMapWatcher } from "./utils/walls.js";
+import { setupLicense } from "./utils/license.js";
 import { onFireEnter, onGetClosestTargetLeave, resetAimbot, setAimbotOptions } from "./features/aimbot.js";
 import { tryKillauraFire, resetKillaura, setKillauraOptions } from "./features/killaura.js";
 import { onUpdateMovementEnter, resetHoldToShoot, setHoldToShootOptions } from "./features/holdtoshoot.js";
@@ -10,52 +11,6 @@ import { updateAutododge, resetAutododge, setAutododgeOptions } from "./features
 const MODULE_NAME = "Nulls Brawl";
 const retryIntervalMs = 500;
 const retryMaxAttempts = 40;
-
-const requestBodyPtrOffset = 192;
-const requestBodySizeOffset = 200;
-const licensePath = "/res/license.bin";
-
-class LicenseProvider {
-    #listener = null;
-    #body = JSON.stringify({ features: [], connection: "Keep-Alive" });
-    #bodyBytes = null;
-    #total = 0;
-
-    setup(mod) {
-        if (this.#listener) return;
-        try {
-            const off = offsets.LogicHttpRequest_encode;
-            if (typeof off !== "number" || off <= 0) return;
-            if (!mod || !mod.path) return;
-            const dir = mod.path.slice(0, mod.path.lastIndexOf("/"));
-            const license = File.readAllBytes(dir + licensePath);
-            if (!license || license.byteLength === 0) return;
-            const mallocAddr = Module.findGlobalExportByName("malloc");
-            if (!mallocAddr || mallocAddr.isNull()) return;
-            const malloc = new NativeFunction(mallocAddr, "pointer", ["size_t"]);
-            this.#bodyBytes = license;
-            this.#total = license.byteLength + this.#body.length + 1;
-            this.#listener = Interceptor.attach(mod.base.add(off), {
-                onEnter: (args) => {
-                    try {
-                        if (!args[0] || args[0].isNull()) return;
-                        const buf = malloc(this.#total);
-                        if (!buf || buf.isNull()) return;
-                        Memory.copy(buf, this.#bodyBytes.unwrap(), this.#bodyBytes.byteLength);
-                        buf.add(this.#bodyBytes.byteLength).writeUtf8String(this.#body);
-                        args[0].add(requestBodyPtrOffset).writePointer(buf);
-                        args[0].add(requestBodySizeOffset).writeS32(this.#total);
-                    } catch (_) {}
-                }
-            });
-            Interceptor.flush();
-        } catch (_) {
-            this.#listener = null;
-        }
-    }
-}
-
-const licenseProvider = new LicenseProvider();
 
 var lastBattle = null;
 
@@ -93,9 +48,9 @@ var _attempts = 0;
 var _retryTimer = null;
 
 function finishInstall(mod) {
-    initFunctions(mod.base);
+    initFunctions(mod.base, mod);
     try {
-        licenseProvider.setup(mod);
+        setupLicense();
     } catch (_) {}
     installTileMapWatcher(mod.base);
 

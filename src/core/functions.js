@@ -1,6 +1,7 @@
 import { offsets } from "./offsets.js";
 
 var base = null;
+var image = null;
 var _n = null;
 
 function _nf(name, ret, args) {
@@ -31,9 +32,10 @@ function _sysAddr(name) {
     }
 }
 
-export function initFunctions(baseIn = Process.mainModule.base) {
+export function initFunctions(baseIn = Process.mainModule.base, imageIn = null) {
     if (_n) return _n;
     base = baseIn;
+    image = imageIn || null;
 
     const mallocPtr = _sysAddr("malloc");
     const freePtr = _sysAddr("free");
@@ -84,4 +86,8 @@ export function getFunctions() {
 export function getBase() {
     if (!base) throw new Error("Functions not initialized! Call initFunctions(base) first.");
     return base;
+}
+
+export function getImage() {
+    return image;
 }
