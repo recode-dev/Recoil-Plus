@@ -123,6 +123,8 @@ export function getAimPoint(target) {
 export function onFireEnter(args) {
     if (!aimbotConfig.enabled) return;
     try {
+        const bs = args[0];
+        if (!bs || bs.isNull()) return;
         const target = selectBestTarget();
         if (!target) return;
         try {
@@ -133,8 +135,12 @@ export function onFireEnter(args) {
         const now = Date.now();
         if (aimbotConfig.reactionMs > 0 && now - lastAimFireMs < aimbotConfig.reactionMs) return;
         lastAimFireMs = now;
-        args[3] = ptr(aim.x | 0);
-        args[4] = ptr(aim.y | 0);
+        bs.add(offsets.BattleScreen_shootStickX).writeS32(aim.x | 0);
+        bs.add(offsets.BattleScreen_shootStickY).writeS32(aim.y | 0);
+        if (args.length > 4) {
+            args[3] = ptr(aim.x | 0);
+            args[4] = ptr(aim.y | 0);
+        }
     } catch (_) {}
 }
 
