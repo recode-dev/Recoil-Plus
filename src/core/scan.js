@@ -493,7 +493,7 @@ export function updateBattleScan(bm, now) {
     battleState.ownTeam = team;
     const objMgr = bm.add(offsets.LogicBattleModeClient_gameObjectManager).readPointer();
     if (!objMgr || objMgr.isNull()) return;
-    const objArray = objMgr.readPointer();
+    const objArray = objMgr.add(offsets.LogicGameObjectManagerClient_gameObjectsArray).readPointer();
     if (!objArray || objArray.isNull()) return;
     const count = objMgr.add(offsets.LogicGameObjectManagerClient_gameObjectCount).readU32();
     if (count === 0 || count > 1200) return;
@@ -542,9 +542,8 @@ export function updateBattleScan(bm, now) {
                         radius = fns.LogicProjectileData_getRadius(data) || radius;
                     } catch (_) {}
                     try {
-                        const tx = fns.LogicProjectileClient_getTargetX(obj);
-                        const ty = fns.LogicProjectileClient_getTargetY(obj);
-                        if ((tx !== 0 || ty !== 0) && isFinite(tx) && isFinite(ty)) spawnAngle = Math.atan2(ty - py, tx - px);
+                        const a = obj.add(184).readFloat();
+                        if (isFinite(a)) spawnAngle = a;
                     } catch (_) {}
                     projectiles.push({ gid: gid, x: px, y: py, speed: speed, radius: radius, spawnAngle: spawnAngle });
                     continue;

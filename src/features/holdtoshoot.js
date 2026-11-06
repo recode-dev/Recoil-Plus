@@ -1,7 +1,7 @@
 import { offsets } from "../core/offsets.js";
 import { battleState } from "../core/scan.js";
 import { aimbotConfig, selectBestTarget, getAimPoint } from "./aimbot.js";
-import { fireMainAttack, sendSkillInput } from "../core/commands.js";
+import { sendAttack, sendSkillInput } from "../core/commands.js";
 
 export const holdToShootConfig = {
     enabled: true,
@@ -65,7 +65,7 @@ export function handleMovementAndCombatAssist(battleScreen, attackHeld, superHel
     }
     const delay = Math.max(80, holdToShootConfig.delayMs | 0);
     if (attackHeld && now - lastAttackFireMs >= delay) {
-        fireMainAttack(battleScreen, battleState.ownCharacter, aim.x, aim.y, true);
+        sendAttack(aim.x | 0, aim.y | 0, true);
         lastAttackFireMs = now;
     }
     if (superHeld && now - lastSuperFireMs >= delay) {
