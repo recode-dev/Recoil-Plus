@@ -9,6 +9,8 @@ export const offsets = Object.freeze({
     LogicGameObjectClient_getData: 0x117050,
     LogicGameObjectClient_getGlobalID: 0x46464c,
     LogicGameObjectManagerClient_findGameObject: 0xa267dc,
+    LogicGameObjectManagerClient_gameObjectsArray: 0x00,
+    LogicGameObjectManagerClient_gameObjectCount: 0x0c,
 
     LogicCharacterClient_getWeaponSkillClient: 0x9fc440,
     LogicCharacterData_getCollisionRadius: 0x9913e8,
@@ -18,21 +20,29 @@ export const offsets = Object.freeze({
     vtable_LogicProjectileData: 0xff3b18,
 
     LogicTileMap_getTile: 0x941598,
+    LogicTileMap_width: 0xc4,
+    LogicTileMap_height: 0xc8,
+    LogicTileMap_tiles: 0x20,
+    LogicTileData_blocksMovement: 0x56,
+    LogicTileData_blocksProjectiles: 0x57,
 
     BattleMode_getInstance: 0x8c5130,
     ClientInputManager_addInput: 0x74675c,
     ClientInput_ctor: 0xa95798,
+    BattleMode_clientInputManager: 0x58,
+    ClientInput_x: 0x0c,
+    ClientInput_y: 0x10,
 
     BattleScreen_updateMovement: 0x7a60f4,
     BattleScreen_updateAutoshoot: 0x7a4644,
-    BattleScreen_tryToActivateSkill: 0x79d594,
+    BattleScreen_handleAutoShoot: 0x79ff78,
     BattleScreen_activateSkill: 0x7a0084,
+    BattleScreen_tryToActivateSkill: 0x7ae364,
     BattleScreen_getClosestTargetForAutoshoot: 0x7b67ec,
 
     LogicGameObjectClient_currentTeamIndex: 0x40,
     LogicGameObjectClient_state: 0x38,
     LogicBattleModeClient_gameObjectManager: 0x28,
-    LogicGameObjectManagerClient_gameObjectCount: 0x0c,
 
     LogicCharacterData_speed: 0x26c,
     LogicCharacterData_characterClassId: 0x35c,
@@ -41,21 +51,12 @@ export const offsets = Object.freeze({
     LogicProjectileData_speed: 0x124,
     LogicProjectileData_radius: 0x130,
     Projectile_getAngle: 0xc8,
-    LogicTileMap_width: 0xc4,
-    LogicTileMap_height: 0xc8,
-    LogicTileMap_tiles: 0x20,
-    LogicTileData_blocksMovement: 0x56,
-    LogicTileData_blocksProjectiles: 0x57,
 
-    BattleMode_clientInputManager: 0x58,
-    ClientInput_x: 0x0c,
-    ClientInput_y: 0x10,
-
-    BattleScreen_shootStickX: 0xfa4,
-    BattleScreen_shootStickY: 0xfa8,
+    BattleScreen_shootStickX: 0xfac,
+    BattleScreen_shootStickY: 0xfb0,
+    BattleScreen_isShootStickActive: 0xfb8,
     BattleScreen_ultiStickX: 0xfcc,
     BattleScreen_ultiStickY: 0xfd0,
-    BattleScreen_isShootStickActive: 0xf9c,
 
     LogicHttpRequest_encode: 0xbd5f3c,
 });
