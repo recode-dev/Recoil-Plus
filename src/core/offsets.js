@@ -17,7 +17,7 @@ export const offsets = Object.freeze({
     vtable_LogicCharacterData: 0xff1ce8,
     vtable_LogicProjectileData: 0xff3b18,
 
-    LogicTileMap_getTile: 0x942474,
+    LogicTileMap_getTile: 0x941598,
 
     BattleMode_getInstance: 0x8c5130,
     ClientInputManager_addInput: 0x74675c,
@@ -37,7 +37,7 @@ export const offsets = Object.freeze({
     LogicCharacterData_speed: 0x26c,
     LogicCharacterData_characterClassId: 0x35c,
     LogicData_name: 0x18,
-    
+
     LogicProjectileData_speed: 0x124,
     LogicProjectileData_radius: 0x130,
     Projectile_getAngle: 0xc8,
