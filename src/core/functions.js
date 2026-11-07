@@ -65,6 +65,7 @@ export function initFunctions(baseIn = Process.mainModule.base, imageIn = null) 
 
         BattleScreen_updateMovement: _nf("BattleScreen_updateMovement", "void", ["pointer", "pointer", "pointer"]),
         BattleScreen_updateAutoshoot: _nf("BattleScreen_updateAutoshoot", "void", ["pointer", "pointer"]),
+        BattleScreen_handleAutoShoot: _nf("BattleScreen_handleAutoShoot", "bool", ["pointer", "pointer"]),
         BattleScreen_tryToActivateSkill: _nf("BattleScreen_tryToActivateSkill", "void", ["pointer", "pointer", "pointer", "int32", "int32", "bool", "int32"]),
         BattleScreen_activateSkill: _nf("BattleScreen_activateSkill", "int", ["pointer", "int32", "int32", "pointer", "pointer", "bool", "int32"]),
         BattleScreen_getClosestTargetForAutoshoot: _nf("BattleScreen_getClosestTargetForAutoshoot", "pointer", ["pointer", "pointer", "int32", "bool", "bool", "pointer", "bool", "bool"]),

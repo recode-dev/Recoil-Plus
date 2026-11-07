@@ -562,9 +562,6 @@ export function updateBattleScan(bm, now) {
                 try {
                     const px = fns.LogicGameObjectClient_getX(obj);
                     const py = fns.LogicGameObjectClient_getY(obj);
-                    const dx = px - battleState.myX;
-                    const dy = py - battleState.myY;
-                    if (dx * dx + dy * dy < 48400) ballPresent = true;
                     pickups.push({ gid: fns.LogicGameObjectClient_getGlobalID(obj), name: "non-brawler", x: px, y: py });
                 } catch (_) {}
                 continue;
@@ -588,33 +585,6 @@ export function updateBattleScan(bm, now) {
                 isProjectile: false
             });
         } catch (_) {}
-    }
-    if (!ballPresent) {
-        for (let i = 0; i < count; i++) {
-            try {
-                const obj = objArray.add(i * 8).readPointer();
-                if (!obj || obj.isNull() || obj.equals(own)) continue;
-                const px = fns.LogicGameObjectClient_getX(obj);
-                const py = fns.LogicGameObjectClient_getY(obj);
-                const dx = px - battleState.myX;
-                const dy = py - battleState.myY;
-                if (dx * dx + dy * dy < 8100) {
-                    ballPresent = true;
-                    break;
-                }
-            } catch (_) {}
-        }
-    }
-    if (!ballPresent) {
-        for (let i = 0; i < pickups.length; i++) {
-            const p = pickups[i];
-            const dx = p.x - battleState.myX;
-            const dy = p.y - battleState.myY;
-            if (dx * dx + dy * dy < 280 * 280) {
-                ballPresent = true;
-                break;
-            }
-        }
     }
     battleState.enemies = enemies;
     battleState.pickups = pickups;

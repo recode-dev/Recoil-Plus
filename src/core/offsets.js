@@ -37,7 +37,7 @@ export const offsets = Object.freeze({
     BattleScreen_updateAutoshoot: 0x7a4644,
     BattleScreen_handleAutoShoot: 0x79ff78,
     BattleScreen_activateSkill: 0x7a0084,
-    BattleScreen_tryToActivateSkill: 0x7ae364,
+    BattleScreen_tryToActivateSkill: 0x7ad554,
     BattleScreen_getClosestTargetForAutoshoot: 0x7b67ec,
 
     LogicGameObjectClient_currentTeamIndex: 0x40,

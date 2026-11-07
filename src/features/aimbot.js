@@ -146,6 +146,7 @@ export function onFireEnter(args) {
 export function onActivateSkillEnter(args) {
     if (!aimbotConfig.enabled) return;
     try {
+        const bs = args[0];
         const target = selectBestTarget(getCurrentAttackRange());
         if (!target) return;
         const aim = getAimPoint(target);
@@ -153,6 +154,10 @@ export function onActivateSkillEnter(args) {
         if (aimbotConfig.reactionMs > 0 && now - lastAimFireMs < aimbotConfig.reactionMs) return;
         lastAimFireMs = now;
         if (!isFinite(aim.x) || !isFinite(aim.y)) return;
+        if (bs && !bs.isNull()) {
+            bs.add(offsets.BattleScreen_shootStickX).writeS32(aim.x | 0);
+            bs.add(offsets.BattleScreen_shootStickY).writeS32(aim.y | 0);
+        }
         args[1] = ptr(aim.x | 0);
         args[2] = ptr(aim.y | 0);
     } catch (_) {}

@@ -1,5 +1,5 @@
 import { offsets } from "../core/offsets.js";
-import { battleState } from "../core/scan.js";
+import { battleState, battleScreenPtr } from "../core/scan.js";
 import { aimbotConfig, selectBestTarget, getAimPoint } from "./aimbot.js";
 import { fireMainAttack } from "../core/commands.js";
 
@@ -29,11 +29,12 @@ export function resetHoldToShoot() {
     lastSuperFireMs = 0;
 }
 
-function readAimPoint() {
+function readAimPoint(battleScreen) {
     try {
-        if (!battleScreenPtr || battleScreenPtr.isNull()) return null;
-        const x = battleScreenPtr.add(offsets.BattleScreen_shootStickX).readS32();
-        const y = battleScreenPtr.add(offsets.BattleScreen_shootStickY).readS32();
+        const bs = battleScreen || battleScreenPtr;
+        if (!bs || bs.isNull()) return null;
+        const x = bs.add(offsets.BattleScreen_shootStickX).readS32();
+        const y = bs.add(offsets.BattleScreen_shootStickY).readS32();
         if (!isFinite(x) || !isFinite(y) || (x === 0 && y === 0)) return null;
         return { x: x, y: y };
     } catch (_) {
@@ -58,7 +59,7 @@ export function handleMovementAndCombatAssist(battleScreen, attackHeld, superHel
         if (target) aim = getAimPoint(target);
     }
     if (!aim) {
-        aim = readAimPoint();
+        aim = readAimPoint(battleScreen);
     }
     if (!aim) {
         aim = { x: battleState.myX, y: battleState.myY };
@@ -77,7 +78,7 @@ export function onUpdateMovementEnter(args, now) {
     let superHeld = false;
     try {
         attackHeld = battleScreen.add(0x1041).readU8() === 1;
-        superHeld = battleScreen.add(0x1042).readU8() === 1;
+        superHeld   = battleScreen.add(0x1042).readU8() === 1;
     } catch (_) {}
     handleMovementAndCombatAssist(battleScreen, attackHeld, superHeld, now);
 }
