@@ -450,9 +450,21 @@ export function loadConfigFromLocalStorage() {
         if (typeof e.combatDodgeShiftDelay === "number") combatConfig.combatDodgeShiftDelay = e.combatDodgeShiftDelay | 0;
         if (typeof e.combatDodgeChance === "number") combatConfig.combatDodgeChance = e.combatDodgeChance | 0;
         if (typeof e.combatDodgeMaxAngle === "number") combatConfig.combatDodgeMaxAngle = e.combatDodgeMaxAngle | 0;
-        if (typeof e.dodgePrecision === "number") DODGE_CFG.N_DIRECTIONS = e.dodgePrecision | 0;
-        if (typeof e.dodgeSafetyMargin === "number") DODGE_CFG.SAFETY_MARGIN = e.dodgeSafetyMargin | 0;
-        if (typeof e.dodgeCommitMs === "number") DODGE_CFG.DODGE_COMMIT_MS = e.dodgeCommitMs | 0;
+        // JirGear parity: loader clamps into the globals (dodgePrecision /
+        // dodgeSafetyMargin / dodgeCommitMs), rebuildDodgeDirections() then
+        // re-derives DODGE_CFG + the direction table from them.
+        if (typeof e.dodgePrecision === "number") {
+            combatConfig.dodgePrecision = clamp(e.dodgePrecision | 0, 8, 40);
+            DODGE_CFG.N_DIRECTIONS = combatConfig.dodgePrecision;
+        }
+        if (typeof e.dodgeSafetyMargin === "number") {
+            combatConfig.dodgeSafetyMargin = clamp(e.dodgeSafetyMargin | 0, 0, 180);
+            DODGE_CFG.SAFETY_MARGIN = combatConfig.dodgeSafetyMargin;
+        }
+        if (typeof e.dodgeCommitMs === "number") {
+            combatConfig.dodgeCommitMs = clamp(e.dodgeCommitMs | 0, 20, 250);
+            DODGE_CFG.DODGE_COMMIT_MS = combatConfig.dodgeCommitMs;
+        }
         if (typeof e.combatDodgeContinuous === "boolean") combatConfig.combatDodgeContinuous = e.combatDodgeContinuous;
         if (typeof e.combatDodgeCircular === "boolean") combatConfig.combatDodgeCircular = e.combatDodgeCircular;
         if (typeof e.combatDodgeAlways === "boolean") combatConfig.combatDodgeAlways = e.combatDodgeAlways;
@@ -461,7 +473,7 @@ export function loadConfigFromLocalStorage() {
         if (typeof e.holdToShootEnabled === "boolean") flags.holdToShootEnabled = e.holdToShootEnabled;
         if (typeof e.holdToShootAim === "boolean") holdToShootConfig.aim = e.holdToShootAim;
         if (typeof e.holdToShootRangeCheck === "boolean") holdToShootConfig.rangeCheck = e.holdToShootRangeCheck;
-        if (typeof e.holdToShootDelayMs === "number") holdToShootConfig.delayMs = e.holdToShootDelayMs | 0;
+        if (typeof e.holdToShootDelayMs === "number") holdToShootConfig.delayMs = clamp(e.holdToShootDelayMs | 0, 0, 1000);
         const n = e.shaderCfg;
         if (n && typeof n === "object") {
             if (typeof n.offX === "number") shaderConfig.offX = n.offX;

@@ -1,6 +1,6 @@
 import { offsets } from "../core/offsets.js";
 import { getFunctions } from "../core/functions.js";
-import { battleState, enemyVelocityTracks, battleScreenPtr, battleModeClientPtr, xraySelectedGid, looksLikeLiveGameObject, FREE_MODE } from "../core/scanner.js";
+import { battleState, ballPresent, enemyVelocityTracks, battleScreenPtr, battleModeClientPtr, xraySelectedGid, looksLikeLiveGameObject, FREE_MODE } from "../core/scanner.js";
 import { writeManualFirePoint } from "../core/commands.js";
 import { flags } from "../utils/flags.js";
 import { getCollisionMap, raycastTilesClear, lineBlockedByBallOrWall } from "../utils/wallCache.js";
