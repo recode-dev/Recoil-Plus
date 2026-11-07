@@ -170,17 +170,39 @@ export function onGetClosestTargetLeave(ret) {
             const fns = getFunctions();
             const data = fns.LogicGameObjectClient_getData(ret);
             if (data && !data.isNull()) {
-                let isPickup = false;
+                let isNonBrawler = false;
                 try {
-                    if (powerupClassIds.has(data.add(offsets.LogicCharacterData_characterClassId).readU32())) isPickup = true;
+                    const classId = data.add(offsets.LogicCharacterData_characterClassId).readU32();
+                    if (powerupClassIds.has(classId)) isNonBrawler = true;
                 } catch (_) {}
-                if (!isPickup) {
+                if (!isNonBrawler) {
                     try {
-                        const name = data.add(offsets.LogicData_name).readPointer().readCString();
-                        if (name && (name.toUpperCase().indexOf("BOXPICKUP") >= 0 || name.toUpperCase().indexOf("POWERUP") >= 0)) isPickup = true;
+                        const namePtr = data.add(offsets.LogicData_name).readPointer();
+                        if (!namePtr.isNull()) {
+                            const name = namePtr.readCString();
+                            if (name) {
+                                const uname = name.toUpperCase();
+                                for (let i = 0; i < powerupNameNeedles.length; i++) {
+                                    if (uname.indexOf(powerupNameNeedles[i]) >= 0) {
+                                        isNonBrawler = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     } catch (_) {}
                 }
-                if (isPickup) return ptr(0);
+                if (!isNonBrawler && battleState.enemies.length > 0) {
+                    let hasEnemy = false;
+                    for (let i = 0; i < battleState.enemies.length; i++) {
+                        if (battleState.enemies[i].ptr && battleState.enemies[i].ptr.equals(ret)) {
+                            hasEnemy = true;
+                            break;
+                        }
+                    }
+                    if (!hasEnemy) isNonBrawler = true;
+                }
+                if (isNonBrawler && battleState.enemies.length > 0) return ptr(0);
             }
         }
     } catch (_) {}

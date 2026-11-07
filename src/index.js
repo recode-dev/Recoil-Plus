@@ -7,6 +7,7 @@ import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot
 import { tryKillauraFire, resetKillaura, setKillauraOptions } from "./features/killaura.js";
 import { onUpdateMovementEnter, resetHoldToShoot, setHoldToShootOptions } from "./features/holdtoshoot.js";
 import { updateAutododge, resetAutododge, setAutododgeOptions } from "./features/autododge.js";
+import { updateAntiAfk, resetAntiAfk, setAntiAfkOptions } from "./features/antiafk.js";
 import { flags } from "./utils/flags.js";
 
 export { flags };
@@ -25,10 +26,14 @@ function onBattleUpdate(bm) {
         resetHoldToShoot();
         resetAutododge();
         resetAimbot();
+        resetAntiAfk();
     }
     const now = Date.now();
     try {
         updateBattleScan(bm, now);
+    } catch (_) {}
+    try {
+        updateAntiAfk(bm, now);
     } catch (_) {}
     try {
         updateAutododge(bm, now);
@@ -179,6 +184,9 @@ rpc.exports = {
     },
     setAutododge(opts) {
         setAutododgeOptions(opts || {});
+    },
+    setAntiAfk(opts) {
+        setAntiAfkOptions(opts || {});
     },
     getFlags() {
         return flags;
