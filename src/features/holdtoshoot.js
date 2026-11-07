@@ -2,7 +2,7 @@ import { offsets } from "../core/offsets.js";
 import { battleState, battleScreenPtr } from "../core/scan.js";
 import { aimbotConfig, selectBestTarget, getAimPoint } from "./aimbot.js";
 import { fireMainAttack, fireSuperAttack } from "../core/commands.js";
-import { flags } from "../flags.js";
+import { flags } from "../utils/flags.js";
 
 export const holdToShootConfig = {
     enabled: true,

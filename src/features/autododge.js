@@ -1,7 +1,7 @@
 import { battleState } from "../core/scan.js";
 import { moveToPoint } from "../core/commands.js";
 import { clipLineAgainstProjectileBlockers, getCollisionMap } from "../utils/walls.js";
-import { flags } from "../flags.js";
+import { flags } from "../utils/flags.js";
 
 function clamp(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v));

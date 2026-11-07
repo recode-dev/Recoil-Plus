@@ -2,7 +2,7 @@ import { getFunctions } from "../core/functions.js";
 import { battleState, battleScreenPtr, battleModeClientPtr, FREE_MODE } from "../core/scan.js";
 import { getCurrentAttackRange, isTargetAllowed, selectBestTarget, getAimPoint } from "./aimbot.js";
 import { fireMainAttack } from "../core/commands.js";
-import { flags } from "../flags.js";
+import { flags } from "../utils/flags.js";
 
 export const killauraConfig = {
     enabled: true,
