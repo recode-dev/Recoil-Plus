@@ -3,7 +3,7 @@ import { initFunctions } from "./core/functions.js";
 import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scan.js";
 import { installTileMapWatcher } from "./utils/walls.js";
 import { setupLicense } from "./utils/license.js";
-import { onFireEnter, onGetClosestTargetLeave, resetAimbot, setAimbotOptions } from "./features/aimbot.js";
+import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot, setAimbotOptions } from "./features/aimbot.js";
 import { tryKillauraFire, resetKillaura, setKillauraOptions } from "./features/killaura.js";
 import { onUpdateMovementEnter, resetHoldToShoot, setHoldToShootOptions } from "./features/holdtoshoot.js";
 import { updateAutododge, resetAutododge, setAutododgeOptions } from "./features/autododge.js";
@@ -92,10 +92,26 @@ function finishInstall(mod) {
         }
     });
 
-    Interceptor.attach(mod.base.add(offsets.BattleScreen_handleAutoShoot), {
+    Interceptor.attach(mod.base.add(offsets.BattleScreen_tryToActivateSkill), {
         onEnter(args) {
             try {
-                onFireEnter(args);
+                const bs = args[0];
+                if (bs && !bs.isNull()) {
+                    setBattleScreenPtr(bs);
+                    onFireEnter(args);
+                }
+            } catch (_) {}
+        }
+    });
+
+    Interceptor.attach(mod.base.add(offsets.BattleScreen_activateSkill), {
+        onEnter(args) {
+            try {
+                const bs = args[0];
+                if (bs && !bs.isNull()) {
+                    setBattleScreenPtr(bs);
+                    onActivateSkillEnter(args);
+                }
             } catch (_) {}
         }
     });

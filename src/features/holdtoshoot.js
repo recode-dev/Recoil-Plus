@@ -1,7 +1,7 @@
 import { offsets } from "../core/offsets.js";
 import { battleState } from "../core/scan.js";
 import { aimbotConfig, selectBestTarget, getAimPoint } from "./aimbot.js";
-import { sendAttack, sendSkillInput } from "../core/commands.js";
+import { fireMainAttack } from "../core/commands.js";
 
 export const holdToShootConfig = {
     enabled: true,
@@ -32,10 +32,10 @@ export function resetHoldToShoot() {
 function readAimPoint() {
     try {
         if (!battleScreenPtr || battleScreenPtr.isNull()) return null;
-        const dx = battleScreenPtr.add(offsets.BattleScreen_shootStickX).readS32();
-        const dy = battleScreenPtr.add(offsets.BattleScreen_shootStickY).readS32();
-        if (!isFinite(dx) || !isFinite(dy)) return null;
-        return { x: (battleState.myX + dx) | 0, y: (battleState.myY + dy) | 0 };
+        const x = battleScreenPtr.add(offsets.BattleScreen_shootStickX).readS32();
+        const y = battleScreenPtr.add(offsets.BattleScreen_shootStickY).readS32();
+        if (!isFinite(x) || !isFinite(y) || (x === 0 && y === 0)) return null;
+        return { x: x, y: y };
     } catch (_) {
         return null;
     }
@@ -65,12 +65,8 @@ export function handleMovementAndCombatAssist(battleScreen, attackHeld, superHel
     }
     const delay = Math.max(80, holdToShootConfig.delayMs | 0);
     if (attackHeld && now - lastAttackFireMs >= delay) {
-        sendAttack(aim.x | 0, aim.y | 0, true);
+        fireMainAttack(battleScreen, battleState.ownCharacter, aim.x, aim.y, true);
         lastAttackFireMs = now;
-    }
-    if (superHeld && now - lastSuperFireMs >= delay) {
-        sendSkillInput(aim.x | 0, aim.y | 0);
-        lastSuperFireMs = now;
     }
 }
 

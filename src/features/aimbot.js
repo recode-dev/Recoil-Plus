@@ -135,12 +135,26 @@ export function onFireEnter(args) {
         const now = Date.now();
         if (aimbotConfig.reactionMs > 0 && now - lastAimFireMs < aimbotConfig.reactionMs) return;
         lastAimFireMs = now;
+        if (!isFinite(aim.x) || !isFinite(aim.y)) return;
         bs.add(offsets.BattleScreen_shootStickX).writeS32(aim.x | 0);
         bs.add(offsets.BattleScreen_shootStickY).writeS32(aim.y | 0);
-        if (args.length > 4) {
-            args[3] = ptr(aim.x | 0);
-            args[4] = ptr(aim.y | 0);
-        }
+        args[3] = ptr(aim.x | 0);
+        args[4] = ptr(aim.y | 0);
+    } catch (_) {}
+}
+
+export function onActivateSkillEnter(args) {
+    if (!aimbotConfig.enabled) return;
+    try {
+        const target = selectBestTarget(getCurrentAttackRange());
+        if (!target) return;
+        const aim = getAimPoint(target);
+        const now = Date.now();
+        if (aimbotConfig.reactionMs > 0 && now - lastAimFireMs < aimbotConfig.reactionMs) return;
+        lastAimFireMs = now;
+        if (!isFinite(aim.x) || !isFinite(aim.y)) return;
+        args[1] = ptr(aim.x | 0);
+        args[2] = ptr(aim.y | 0);
     } catch (_) {}
 }
 

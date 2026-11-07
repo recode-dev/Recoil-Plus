@@ -1,7 +1,7 @@
 import { getFunctions } from "../core/functions.js";
 import { battleState, battleScreenPtr, battleModeClientPtr, FREE_MODE } from "../core/scan.js";
 import { getCurrentAttackRange, isTargetAllowed, selectBestTarget, getAimPoint } from "./aimbot.js";
-import { sendAttack } from "../core/commands.js";
+import { fireMainAttack } from "../core/commands.js";
 
 export const killauraConfig = {
     enabled: true,
@@ -42,9 +42,9 @@ export function tryKillauraFire(now) {
     if (!target || !isTargetAllowed(target)) return false;
     const aim = getAimPoint(target);
     try {
-        sendAttack(aim.x | 0, aim.y | 0, false);
-        lastKillauraFireMs = now;
-        return true;
+        const fired = fireMainAttack(battleScreenPtr, ownChar, aim.x, aim.y, false);
+        if (fired) lastKillauraFireMs = now;
+        return fired;
     } catch (_) {
         return false;
     }
