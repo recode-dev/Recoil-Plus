@@ -7,6 +7,9 @@ import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot
 import { tryKillauraFire, resetKillaura, setKillauraOptions } from "./features/killaura.js";
 import { onUpdateMovementEnter, resetHoldToShoot, setHoldToShootOptions } from "./features/holdtoshoot.js";
 import { updateAutododge, resetAutododge, setAutododgeOptions } from "./features/autododge.js";
+import { flags } from "./flags.js";
+
+export { flags };
 
 const MODULE_NAME = "Nulls Brawl";
 const retryIntervalMs = 500;
@@ -176,6 +179,14 @@ rpc.exports = {
     },
     setAutododge(opts) {
         setAutododgeOptions(opts || {});
+    },
+    getFlags() {
+        return flags;
+    },
+    setFlags(opts) {
+        if (opts && typeof opts === "object") {
+            Object.assign(flags, opts);
+        }
     }
 };
 

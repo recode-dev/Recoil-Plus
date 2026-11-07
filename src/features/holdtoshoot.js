@@ -2,6 +2,7 @@ import { offsets } from "../core/offsets.js";
 import { battleState, battleScreenPtr } from "../core/scan.js";
 import { aimbotConfig, selectBestTarget, getAimPoint } from "./aimbot.js";
 import { fireMainAttack, fireSuperAttack } from "../core/commands.js";
+import { flags } from "../flags.js";
 
 export const holdToShootConfig = {
     enabled: true,
@@ -52,7 +53,7 @@ function readAimPoint(battleScreen) {
 }
 
 export function handleMovementAndCombatAssist(battleScreen, attackHeld, superHeld, now) {
-    if (!holdToShootConfig.enabled || !battleScreen || battleScreen.isNull() || !battleState.ownCharacter || battleState.ownCharacter.isNull()) {
+    if (!flags.holdToShoot || !holdToShootConfig.enabled || !battleScreen || battleScreen.isNull() || !battleState.ownCharacter || battleState.ownCharacter.isNull()) {
         prevAttackHeld = false;
         prevSuperHeld = false;
         return;

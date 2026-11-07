@@ -1,6 +1,7 @@
 import { battleState } from "../core/scan.js";
 import { moveToPoint } from "../core/commands.js";
 import { clipLineAgainstProjectileBlockers, getCollisionMap } from "../utils/walls.js";
+import { flags } from "../flags.js";
 
 function clamp(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v));
@@ -579,8 +580,8 @@ export function resetAutododge() {
 }
 
 export function updateAutododge(battleModeClientPtr, now) {
-    if (!autododgeConfig.enabled || !battleModeClientPtr || battleModeClientPtr.isNull() || battleState.lastUpdate === 0) {
-        if (!autododgeConfig.enabled) clearExpiredEnemyTracks();
+    if (!flags.autododge || !autododgeConfig.enabled || !battleModeClientPtr || battleModeClientPtr.isNull() || battleState.lastUpdate === 0) {
+        if (!flags.autododge || !autododgeConfig.enabled) clearExpiredEnemyTracks();
         return false;
     }
     const myX = battleState.myX | 0;

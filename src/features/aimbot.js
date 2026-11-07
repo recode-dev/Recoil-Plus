@@ -3,6 +3,7 @@ import { getFunctions } from "../core/functions.js";
 import { battleState, enemyVelocityTracks, ballPresent, FREE_MODE, PROJECTILE_SPEED_BY_BRAWLER_ID, DEFAULT_RANGE_BY_BRAWLER_ID, RANGE_BY_BRAWLER_NAME, powerupClassIds } from "../core/scan.js";
 import { getCollisionMap, raycastTilesClear } from "../utils/walls.js";
 import { writeManualFirePoint } from "../core/commands.js";
+import { flags } from "../flags.js";
 
 export const aimbotConfig = {
     enabled: true,
@@ -122,7 +123,7 @@ export function getAimPoint(target) {
 }
 
 export function onFireEnter(args) {
-    if (!aimbotConfig.enabled) return;
+    if (!flags.aimbot || !aimbotConfig.enabled) return;
     try {
         const bs = args[0];
         if (!bs || bs.isNull()) return;
@@ -144,7 +145,7 @@ export function onFireEnter(args) {
 }
 
 export function onActivateSkillEnter(args) {
-    if (!aimbotConfig.enabled) return;
+    if (!flags.aimbot || !aimbotConfig.enabled) return;
     try {
         const bs = args[0];
         const target = selectBestTarget(getCurrentAttackRange());
@@ -163,7 +164,7 @@ export function onActivateSkillEnter(args) {
 }
 
 export function onGetClosestTargetLeave(ret) {
-    if (!aimbotConfig.enabled) return ret;
+    if (!flags.aimbot || !aimbotConfig.enabled) return ret;
     try {
         if (!ret.isNull()) {
             const fns = getFunctions();

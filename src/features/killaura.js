@@ -2,6 +2,7 @@ import { getFunctions } from "../core/functions.js";
 import { battleState, battleScreenPtr, battleModeClientPtr, FREE_MODE } from "../core/scan.js";
 import { getCurrentAttackRange, isTargetAllowed, selectBestTarget, getAimPoint } from "./aimbot.js";
 import { fireMainAttack } from "../core/commands.js";
+import { flags } from "../flags.js";
 
 export const killauraConfig = {
     enabled: true,
@@ -32,7 +33,7 @@ export function resetKillaura() {
 }
 
 export function tryKillauraFire(now) {
-    if (!killauraConfig.enabled || !battleScreenPtr || battleScreenPtr.isNull() || killauraConfig.fireInterval > 0 && now - lastKillauraFireMs < killauraConfig.fireInterval || !battleModeClientPtr || battleModeClientPtr.isNull()) return false;
+    if (!flags.killaura || !killauraConfig.enabled || !battleScreenPtr || battleScreenPtr.isNull() || killauraConfig.fireInterval > 0 && now - lastKillauraFireMs < killauraConfig.fireInterval || !battleModeClientPtr || battleModeClientPtr.isNull()) return false;
     const fns = getFunctions();
     const ownChar = fns.LogicBattleModeClient_getOwnCharacter(battleModeClientPtr);
     if (!ownChar || ownChar.isNull()) return false;
