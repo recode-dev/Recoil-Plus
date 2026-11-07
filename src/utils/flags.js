@@ -1,6 +1,6 @@
 export const flags = {
     aimbot: true,
-    killaura: true,
+    killaura: false,
     autododge: true,
-    holdToShoot: true
+    holdToShoot: false
 };
