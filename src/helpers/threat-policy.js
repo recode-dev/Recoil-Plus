@@ -2,7 +2,8 @@ import { DODGE_CFG } from "./dodge_profiles.js";
 import { performAutododgeMove, expireOldProjectileTracks } from "./projectile-motion.js";
 import { projectileThreats } from "./threat-memory.js";
 
-var cachedUrgentT = DODGE_CFG.T_URGENT_MIN;
+// JirGear initializes the urgent-T cache with 0.9 (Fr = .9), not T_URGENT_MIN.
+var cachedUrgentT = 0.9;
 var cachedUrgentTs = 0;
 var maxObservedThreatSpeed = 0;
 

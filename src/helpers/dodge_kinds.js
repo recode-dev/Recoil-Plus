@@ -10,7 +10,7 @@ export function clamp(v, lo, hi) {
 }
 
 export function normalize2d(x, y) {
-    const len = Math.hypot(x, y);
+    const len = Math.sqrt(x * x + y * y);
     return len < 1e-6 ? { x: 1, y: 0 } : { x: x / len, y: y / len };
 }
 

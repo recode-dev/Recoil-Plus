@@ -1,87 +1,87 @@
-import { offsets } from "../core/offsets.js";
-import { battleState, battleScreenPtr } from "../core/scanner.js";
+import { battleState } from "../core/scanner.js";
+import { getFunctions } from "../core/functions.js";
 import { aimbotConfig, selectBestTarget, getAimPoint } from "./aimbot.js";
-import { fireMainAttack, fireSuperAttack } from "../core/commands.js";
 import { flags } from "../utils/flags.js";
 
+// JirGear hold-to-shoot config (holdToShootAim / holdToShootRangeCheck /
+// holdToShootDelayMs); the enable flag is flags.holdToShootEnabled.
 export const holdToShootConfig = {
-    enabled: true,
     aim: false,
     rangeCheck: false,
     delayMs: 50
 };
 
 export function setHoldToShootOptions(opts = {}) {
-    if (typeof opts.enabled === "boolean") holdToShootConfig.enabled = opts.enabled;
+    if (typeof opts.enabled === "boolean") flags.holdToShootEnabled = opts.enabled;
     if (typeof opts.aim === "boolean") holdToShootConfig.aim = opts.aim;
     if (typeof opts.rangeCheck === "boolean") holdToShootConfig.rangeCheck = opts.rangeCheck;
     if (typeof opts.delayMs === "number") holdToShootConfig.delayMs = Math.min(Math.max(opts.delayMs | 0, 0), 1000);
 }
 
-var prevAttackHeld = false;
-var prevSuperHeld = false;
-var lastAttackFireMs = 0;
-var lastSuperFireMs = 0;
+var holdAttack = false;
+var holdSuper = false;
+var holdAttackFireMs = 0;
+var holdSuperFireMs = 0;
 
 export function resetHoldToShoot() {
-    prevAttackHeld = false;
-    prevSuperHeld = false;
-    lastAttackFireMs = 0;
-    lastSuperFireMs = 0;
+    holdAttack = false;
+    holdSuper = false;
+    holdAttackFireMs = 0;
+    holdSuperFireMs = 0;
 }
 
-function readAimPoint(battleScreen) {
-    try {
-        const bs = battleScreen || battleScreenPtr;
-        if (!bs || bs.isNull()) return null;
-        let x = 0, y = 0;
-        try {
-            x = bs.add(3844).readS32();
-            y = bs.add(3848).readS32();
-        } catch (_) {}
-        if (!x && !y && typeof offsets.BattleScreen_shootStickX === "number") {
-            try {
-                x = bs.add(offsets.BattleScreen_shootStickX).readS32();
-                y = bs.add(offsets.BattleScreen_shootStickY).readS32();
-            } catch (_) {}
-        }
-        if (!isFinite(x) || !isFinite(y) || (x === 0 && y === 0)) return null;
-        return { x: x, y: y };
-    } catch (_) {
-        return null;
-    }
-}
-
+// JirGear handleMovementAndCombatAssist, exact port.
 export function handleMovementAndCombatAssist(battleScreen, attackHeld, superHeld, now) {
-    if (!flags.holdToShoot || !holdToShootConfig.enabled || !battleScreen || battleScreen.isNull() || !battleState.ownCharacter || battleState.ownCharacter.isNull()) {
-        prevAttackHeld = false;
-        prevSuperHeld = false;
+    if (!flags.holdToShootEnabled || !battleScreen || battleScreen.isNull() || !battleState.ownCharacter || battleState.ownCharacter.isNull()) {
+        holdAttack = false;
+        holdSuper = false;
         return;
     }
-    if (attackHeld && !prevAttackHeld) lastAttackFireMs = now;
-    if (superHeld && !prevSuperHeld) lastSuperFireMs = now;
-    prevAttackHeld = !!attackHeld;
-    prevSuperHeld = !!superHeld;
+    if (attackHeld && !holdAttack) holdAttackFireMs = now;
+    if (superHeld && !holdSuper) holdSuperFireMs = now;
+    holdAttack = !!attackHeld;
+    holdSuper = !!superHeld;
     if (!attackHeld && !superHeld) return;
+
     let aim = null;
     if (holdToShootConfig.aim) {
         const target = selectBestTarget(holdToShootConfig.rangeCheck ? aimbotConfig.maxRange : 0);
         if (target) aim = getAimPoint(target);
     }
     if (!aim) {
-        aim = readAimPoint(battleScreen);
+        try {
+            aim = {
+                x: battleScreen.add(3844).readS32(),
+                y: battleScreen.add(3848).readS32()
+            };
+        } catch (_) {
+            aim = { x: battleState.myX, y: battleState.myY };
+        }
     }
-    if (!aim) {
-        aim = { x: battleState.myX, y: battleState.myY };
-    }
+    try {
+        battleScreen.add(3844).writeS32(aim.x | 0);
+        battleScreen.add(3848).writeS32(aim.y | 0);
+    } catch (_) {}
+
     const delay = Math.max(80, holdToShootConfig.delayMs | 0);
-    if (attackHeld && now - lastAttackFireMs >= delay) {
-        fireMainAttack(battleScreen, battleState.ownCharacter, aim.x, aim.y, true);
-        lastAttackFireMs = now;
+    if (attackHeld && now - holdAttackFireMs >= delay) {
+        try {
+            const fns = getFunctions();
+            if (fns.BattleScreen_handleAutoShoot) {
+                fns.BattleScreen_handleAutoShoot(battleScreen, battleState.ownCharacter);
+                holdAttackFireMs = now;
+            }
+        } catch (_) {}
     }
-    if (superHeld && now - lastSuperFireMs >= delay) {
-        fireSuperAttack(battleScreen, battleState.ownCharacter, aim.x, aim.y);
-        lastSuperFireMs = now;
+    if (superHeld && now - holdSuperFireMs >= delay) {
+        try {
+            const fns = getFunctions();
+            if (fns.BattleScreen_activateSkill) {
+                const skill = fns.LogicCharacterClient_getWeaponSkillClient ? fns.LogicCharacterClient_getWeaponSkillClient(battleState.ownCharacter) : null;
+                fns.BattleScreen_activateSkill(battleScreen, aim.x | 0, aim.y | 0, battleState.ownCharacter, skill, 1, 0);
+                holdSuperFireMs = now;
+            }
+        } catch (_) {}
     }
 }
 
@@ -91,12 +91,8 @@ export function onUpdateMovementEnter(args, now) {
     let attackHeld = false;
     let superHeld = false;
     try {
-        attackHeld = battleScreen.add(3793).readU8() === 1 ||
-                     battleScreen.add(0xf79).readU8() === 1 ||
-                     battleScreen.add(0x1041).readU8() === 1;
-        superHeld   = battleScreen.add(3794).readU8() === 1 ||
-                     battleScreen.add(0xf7a).readU8() === 1 ||
-                     battleScreen.add(0x1042).readU8() === 1;
+        attackHeld = battleScreen.add(3793).readU8() === 1;
+        superHeld = battleScreen.add(3794).readU8() === 1;
     } catch (_) {}
     handleMovementAndCombatAssist(battleScreen, attackHeld, superHeld, now);
 }

@@ -1,6 +1,8 @@
 import { offsets } from "./offsets.js";
 import { getFunctions, getBase } from "./functions.js";
 import { powerupClassIds, powerupNameNeedles } from "../utils/brawlerName.js";
+import { flags } from "../utils/flags.js";
+import { battleTickUpdate } from "./commands.js";
 
 export const FREE_MODE = true;
 
@@ -23,6 +25,7 @@ export const battleState = {
 export var ballPresent = false;
 export var battleScreenPtr = null;
 export var battleModeClientPtr = null;
+export var xraySelectedGid = 0;
 
 export function setBattleScreenPtr(p) {
     battleScreenPtr = p;
@@ -119,7 +122,7 @@ export const BRAWLER_NAMES_BY_ID = {
 export const enemyVelocityTracks = new Map();
 export const projectileTrackMap = new Map();
 
-function looksLikeLiveGameObject(t) {
+export function looksLikeLiveGameObject(t) {
     try {
         if (!t || t.isNull() || t.readPointer().isNull()) return false;
         const a = t.add(16).readPointer();
@@ -149,7 +152,7 @@ function readHeroNameFromHeroData(t) {
     return null;
 }
 
-function updateEnemyVelocityTrack(enemy, now) {
+export function updateEnemyVelocityTrack(enemy, now) {
     const track = enemyVelocityTracks.get(enemy.gid);
     if (!track) {
         const fresh = { x: enemy.x, y: enemy.y, ts: now, vx: 0, vy: 0, lastSeen: now };
@@ -186,6 +189,9 @@ export function resetBattleScan() {
 export function updateBattleScan(bm, now) {
     if (!bm || bm.isNull()) return;
     battleModeClientPtr = bm;
+
+    battleTickUpdate(now);
+
     const fns = getFunctions();
     const own = fns.LogicBattleModeClient_getOwnCharacter(bm);
     if (own && !own.isNull() && looksLikeLiveGameObject(own)) {
@@ -202,7 +208,11 @@ export function updateBattleScan(bm, now) {
                 try {
                     const cls = data.add(offsets.LogicCharacterData_characterClassId).readU32();
                     battleState.myBrawlerId = cls;
-                    battleState.myBrawlerName = readHeroNameFromHeroData(data);
+                    const namePtr = data.add(offsets.LogicData_name).readPointer();
+                    if (namePtr && !namePtr.isNull()) {
+                        const s = namePtr.readCString();
+                        if (s && s.indexOf("hero_icon_") === 0) battleState.myBrawlerName = s.substring(10).toUpperCase();
+                    }
                 } catch (_) {}
             }
         } catch (_) {}
@@ -210,26 +220,34 @@ export function updateBattleScan(bm, now) {
     const team = fns.LogicBattleModeClient_getOwnPlayerTeam(bm);
     battleState.myTeamId = team;
     battleState.ownTeam = team;
+
     const objMgr = bm.add(offsets.LogicBattleModeClient_gameObjectManager).readPointer();
     if (!objMgr || objMgr.isNull()) return;
     const objArray = objMgr.add(offsets.LogicGameObjectManagerClient_gameObjectsArray).readPointer();
     if (!objArray || objArray.isNull()) return;
     const count = objMgr.add(offsets.LogicGameObjectManagerClient_gameObjectCount).readU32();
     if (count === 0 || count > 1200) return;
+
     const enemies = [];
     const pickups = [];
     const projectiles = [];
     const projVtable = getBase().add(offsets.vtable_LogicProjectileData);
-    const charVtable = getBase().add(offsets.vtable_LogicCharacterData);
+
     ballPresent = false;
     for (let i = 0; i < count; i++) {
         try {
             const obj = objArray.add(i * 8).readPointer();
             if (!obj || obj.isNull() || obj.equals(own) || !looksLikeLiveGameObject(obj)) continue;
-            const objTeam = obj.add(offsets.LogicGameObjectClient_currentTeamIndex).readU32();
-            const state = obj.add(offsets.LogicGameObjectClient_state).readU32();
+            let objTeam = 4294967295;
+            let dead = false;
+            try {
+                objTeam = obj.add(offsets.LogicGameObjectClient_currentTeamIndex).readU32();
+            } catch (_) {}
+            try {
+                dead = obj.add(offsets.LogicGameObjectClient_state).readU32() !== 0;
+            } catch (_) {}
             const data = fns.LogicGameObjectClient_getData(obj);
-            if (!data || data.isNull()) continue;
+            if (!data || data.isNull() || dead) continue;
             try {
                 if (data.readPointer().equals(projVtable)) {
                     if (objTeam === team) continue;
@@ -281,11 +299,13 @@ export function updateBattleScan(bm, now) {
                 try {
                     const px = fns.LogicGameObjectClient_getX(obj);
                     const py = fns.LogicGameObjectClient_getY(obj);
+                    const dx = px - battleState.myX;
+                    const dy = py - battleState.myY;
+                    if (dx * dx + dy * dy < 48400) ballPresent = true;
                     pickups.push({ gid: fns.LogicGameObjectClient_getGlobalID(obj), name: "non-brawler", x: px, y: py });
                 } catch (_) {}
                 continue;
             }
-            if ((state & 1) !== 0) continue;
             let collisionRadius = 60;
             try {
                 const cr = fns.LogicCharacterData_getCollisionRadius(data) | 0;
@@ -298,17 +318,61 @@ export function updateBattleScan(bm, now) {
                 x: fns.LogicGameObjectClient_getX(obj),
                 y: fns.LogicGameObjectClient_getY(obj),
                 brawlerId: brawlerId,
-                brawlerName: name,
+                brawlerName: name || BRAWLER_NAMES_BY_ID[brawlerId] || null,
                 collisionRadius: collisionRadius,
                 isBrawler: true,
                 isProjectile: false
             });
         } catch (_) {}
     }
+
+    if (!ballPresent) {
+        for (let i = 0; i < count; i++) {
+            try {
+                const obj = objArray.add(i * 8).readPointer();
+                if (!obj || obj.isNull() || obj.equals(own)) continue;
+                const px = fns.LogicGameObjectClient_getX(obj);
+                const py = fns.LogicGameObjectClient_getY(obj);
+                const dx = px - battleState.myX;
+                const dy = py - battleState.myY;
+                if (dx * dx + dy * dy < 8100) {
+                    ballPresent = true;
+                    break;
+                }
+            } catch (_) {}
+        }
+    }
+    if (!ballPresent) {
+        for (let i = 0; i < pickups.length; i++) {
+            const p = pickups[i];
+            const dx = p.x - battleState.myX;
+            const dy = p.y - battleState.myY;
+            if (dx * dx + dy * dy < 280 * 280) {
+                ballPresent = true;
+                break;
+            }
+        }
+    }
+
     battleState.enemies = enemies;
     battleState.pickups = pickups;
     battleState.projectiles = projectiles;
     battleState.lastUpdate = now;
+
+    if (flags.xrayEnabled && xraySelectedGid !== 0) {
+        let found = false;
+        for (let i = 0; i < enemies.length; i++) {
+            if ((enemies[i].gid | 0) === (xraySelectedGid | 0)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            xraySelectedGid = 0;
+            flags.xrayEnabled = false;
+        }
+    }
+
     for (let i = 0; i < enemies.length; i++) updateEnemyVelocityTrack(enemies[i], now);
     for (const [gid, track] of enemyVelocityTracks) {
         if (now - track.lastSeen > 2000) enemyVelocityTracks.delete(gid);

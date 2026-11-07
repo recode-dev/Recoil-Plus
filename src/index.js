@@ -1,14 +1,16 @@
 import { offsets } from "./core/offsets.js";
 import { initFunctions } from "./core/functions.js";
-import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scanner.js";
+import { updateBattleScan, resetBattleScan, setBattleScreenPtr, battleModeClientPtr } from "./core/scanner.js";
+import { battleTickUpdate, resetBattleTick, moveToPoint } from "./core/commands.js";
 import { installTileMapWatcher } from "./utils/wallCache.js";
 import { setupLicense } from "./utils/license.js";
-import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot } from "./features/aimbot.js";
+import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot, ballAssist } from "./features/aimbot.js";
 import { tryKillauraFire, resetKillaura } from "./features/killaura.js";
 import { onUpdateMovementEnter, resetHoldToShoot } from "./features/holdtoshoot.js";
 import { updateAutododge, resetAutododge } from "./features/autododge.js";
-import { updateAntiAfk, resetAntiAfk } from "./features/antiafk.js";
+import { applySpinMovement, collectEnemiesAndPickups, getFollowTargetPoint, resetAntiAfk } from "./features/antiafk.js";
 import { flags } from "./utils/flags.js";
+import { initMenu } from "./ui/menu.js";
 
 export { flags };
 
@@ -16,30 +18,36 @@ const MODULE_NAME = "Nulls Brawl";
 const retryIntervalMs = 500;
 const retryMaxAttempts = 40;
 
-var lastBattle = null;
+// JirGear references checkBattleExit on a 1s interval; in the source it is
+// undefined (the ReferenceError is swallowed), i.e. a no-op. Ported as no-op.
+function checkBattleExit() {}
 
+// JirGear battle pipeline (LogicBattleModeClient_update onEnter), exact order:
+// battleTickUpdate -> scan -> tryHoldToShoot(dodge) -> spin -> follow -> killaura -> ballAssist -> ESP(dormant).
 function onBattleUpdate(bm) {
-    if (!lastBattle || !lastBattle.equals(bm)) {
-        lastBattle = bm;
-        resetBattleScan();
-        resetKillaura();
-        resetHoldToShoot();
-        resetAutododge();
-        resetAimbot();
-        resetAntiAfk();
-    }
     const now = Date.now();
+    try {
+        battleTickUpdate(now);
+    } catch (_) {}
     try {
         updateBattleScan(bm, now);
     } catch (_) {}
+    let dodgeRan = false;
     try {
-        updateAntiAfk(bm, now);
+        dodgeRan = updateAutododge(bm, now);
+    } catch (_) {}
+    let spinRan = false;
+    try {
+        spinRan = !dodgeRan && applySpinMovement(bm);
     } catch (_) {}
     try {
-        updateAutododge(bm, now);
+        if (!dodgeRan && !spinRan) collectEnemiesAndPickups(bm);
     } catch (_) {}
     try {
         tryKillauraFire(now);
+    } catch (_) {}
+    try {
+        ballAssist(bm);
     } catch (_) {}
 }
 
@@ -62,6 +70,11 @@ function finishInstall(mod) {
     } catch (_) {}
     installTileMapWatcher(mod.base);
 
+    // JirGear order: config load + button hook + boot start BEFORE battle hooks.
+    try {
+        initMenu(mod);
+    } catch (_) {}
+
     Interceptor.attach(mod.base.add(offsets.LogicBattleModeClient_update), {
         onEnter(args) {
             try {
@@ -78,9 +91,20 @@ function finishInstall(mod) {
                 const bs = args[0];
                 if (bs && !bs.isNull()) {
                     setBattleScreenPtr(bs);
+                    const now = Date.now();
                     try {
-                        const now = Date.now();
                         onUpdateMovementEnter(args, now);
+                    } catch (_) {}
+                    try {
+                        if (flags.followEnabled && !flags.spinEnabled && !flags.autododgeEnabled) {
+                            const bm = battleModeClientPtr;
+                            if (bm && !bm.isNull()) {
+                                const p = getFollowTargetPoint();
+                                if (p) moveToPoint(bm, p.x, p.y);
+                            }
+                        }
+                    } catch (_) {}
+                    try {
                         tryKillauraFire(now);
                     } catch (_) {}
                 }
@@ -145,9 +169,7 @@ function finishInstall(mod) {
         }
     });
 
-    try {
-        initMenu(mod);
-    } catch (_) {}
+    setInterval(checkBattleExit, 1000);
 
     _installed = true;
     return true;
@@ -171,6 +193,16 @@ export function startAgent() {
     if (mod) return finishInstall(mod);
     scheduleRetry();
     return false;
+}
+
+export function resetBattle() {
+    resetBattleScan();
+    resetKillaura();
+    resetHoldToShoot();
+    resetAutododge();
+    resetAimbot();
+    resetAntiAfk();
+    resetBattleTick();
 }
 
 startAgent();

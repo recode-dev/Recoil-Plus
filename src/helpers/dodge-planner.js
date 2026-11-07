@@ -1,4 +1,4 @@
-import { DODGE_CFG, PROJECTILE_DEDUP_WINDOW_MS } from "./dodge_profiles.js";
+import { DODGE_CFG, PROJECTILE_DEDUP_WINDOW_MS, combatConfig } from "./dodge_profiles.js";
 import { clamp, normalize2d, compareDodgePoints } from "./dodge_kinds.js";
 import { projectileOwnerMemory, projectileThreats } from "./threat-memory.js";
 import {
@@ -16,10 +16,12 @@ import { clipLineAgainstProjectileBlockers, getCollisionMap } from "../utils/wal
 
 export const dodgeDirections = [];
 
-export function rebuildDodgeDirections(precision = DODGE_CFG.N_DIRECTIONS, safetyMargin = DODGE_CFG.SAFETY_MARGIN, commitMs = DODGE_CFG.DODGE_COMMIT_MS) {
-    DODGE_CFG.N_DIRECTIONS = clamp(precision | 0, 8, 40);
-    DODGE_CFG.SAFETY_MARGIN = clamp(safetyMargin | 0, 0, 180);
-    DODGE_CFG.DODGE_COMMIT_MS = clamp(commitMs | 0, 20, 250);
+export function rebuildDodgeDirections() {
+    DODGE_CFG.N_DIRECTIONS = clamp(combatConfig.dodgePrecision | 0, 8, 40);
+    DODGE_CFG.SAFETY_MARGIN = clamp(combatConfig.dodgeSafetyMargin | 0, 0, 180);
+    DODGE_CFG.DODGE_COMMIT_MS = clamp(combatConfig.dodgeCommitMs | 0, 20, 250);
+    combatConfig.combatDodgeShift = DODGE_CFG.SAFETY_MARGIN;
+    combatConfig.combatDodgeChangeDelay = DODGE_CFG.DODGE_COMMIT_MS;
 
     dodgeDirections.length = 0;
     for (let i = 0; i < DODGE_CFG.N_DIRECTIONS; i++) {

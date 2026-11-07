@@ -1,5 +1,6 @@
 import { offsets } from "./offsets.js";
 import { getFunctions } from "./functions.js";
+import { flags } from "../utils/flags.js";
 
 export function moveToPoint(battleModeClientPtr, x, y) {
     try {
@@ -11,8 +12,8 @@ export function moveToPoint(battleModeClientPtr, x, y) {
         const battle = fns.BattleMode_getInstance();
         const mgr = (battle && !battle.isNull() ? battle : battleModeClientPtr).add(offsets.BattleMode_clientInputManager).readPointer();
         if (mgr && !mgr.isNull()) {
-            const ci = fns.malloc(72);
-            if (fns.memset) fns.memset(ci, 0, 72);
+            const ci = fns.malloc(64);
+            if (fns.memset) fns.memset(ci, 0, 64);
             fns.ClientInput_ctor(ci, 2);
             ci.add(offsets.ClientInput_x).writeS32(x | 0);
             ci.add(offsets.ClientInput_y).writeS32(y | 0);
@@ -50,6 +51,45 @@ export function writeManualFirePoint(battleScreen, x, y) {
         return true;
     } catch (_) {
         return false;
+    }
+}
+
+export function fireAtPoint(type) {
+    try {
+        const fns = getFunctions();
+        const inst = fns.BattleMode_getInstance();
+        if (!inst || inst.isNull()) return false;
+        const mgr = inst.add(offsets.BattleMode_clientInputManager).readPointer();
+        if (!mgr || mgr.isNull()) return false;
+        const ci = fns.malloc(100);
+        if (fns.memset) fns.memset(ci, 0, 100);
+        fns.ClientInput_ctor(ci, type | 0);
+        fns.ClientInputManager_addInput(mgr, ci);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+export const battleTickConfig = {
+    pinIntervalMs: 800,
+    sprayIntervalMs: 600
+};
+
+var lastPinMs = 0;
+var lastSprayMs = 0;
+
+export function resetBattleTick() {
+    lastPinMs = 0;
+    lastSprayMs = 0;
+}
+
+export function battleTickUpdate(now) {
+    if (flags.pinEnabled && now - lastPinMs >= battleTickConfig.pinIntervalMs) {
+        if (fireAtPoint(9)) lastPinMs = now;
+    }
+    if (flags.sprayEnabled && now - lastSprayMs >= battleTickConfig.sprayIntervalMs) {
+        if (fireAtPoint(15)) lastSprayMs = now;
     }
 }
 

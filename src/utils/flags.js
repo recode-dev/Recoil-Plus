@@ -1,7 +1,27 @@
+// JirGear feature flags with JirGear defaults (everything off except serverIP,
+// killauraMainAttack and killauraNoBall).
 export const flags = {
-    aimbot: true,
-    killaura: false,
-    autododge: true,
-    holdToShoot: false,
-    antiAfk: true
+    aimEnabled: false,
+    killauraEnabled: false,
+    killauraMainAttack: true,
+    killauraGadget: false,
+    killauraSuper: false,
+    killauraNoWall: false,
+    killauraNoBall: true,
+    autododgeEnabled: false,
+    holdToShootEnabled: false,
+    holdToShootAim: false,
+    holdToShootRangeCheck: false,
+    spinEnabled: false,
+    followEnabled: false,
+    followAntiAfkEnabled: false,
+    pinEnabled: false,
+    sprayEnabled: false,
+    xrayEnabled: false,
+    ballAssistEnabled: false,
+    cameraEnabled: false,
+    espEnabled: false,
+    epsteinEnabled: false,
+    serverIPEnabled: true,
+    debugEnabled: false
 };

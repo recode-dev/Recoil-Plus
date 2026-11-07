@@ -36,7 +36,7 @@ export function trackProjectiles(now, projectiles, enemies) {
             const mem = projectileOwnerMemory[gid];
             const dx = proj.x - mem.lastX;
             const dy = proj.y - mem.lastY;
-            const dist = Math.hypot(dx, dy);
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist > 5) {
                 mem.dirX = dx / dist;
