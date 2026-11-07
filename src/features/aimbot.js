@@ -2,6 +2,7 @@ import { offsets } from "../core/offsets.js";
 import { getFunctions } from "../core/functions.js";
 import { battleState, enemyVelocityTracks, ballPresent, FREE_MODE, PROJECTILE_SPEED_BY_BRAWLER_ID, DEFAULT_RANGE_BY_BRAWLER_ID, RANGE_BY_BRAWLER_NAME, powerupClassIds } from "../core/scan.js";
 import { getCollisionMap, raycastTilesClear } from "../utils/walls.js";
+import { writeManualFirePoint } from "../core/commands.js";
 
 export const aimbotConfig = {
     enabled: true,
@@ -136,8 +137,7 @@ export function onFireEnter(args) {
         if (aimbotConfig.reactionMs > 0 && now - lastAimFireMs < aimbotConfig.reactionMs) return;
         lastAimFireMs = now;
         if (!isFinite(aim.x) || !isFinite(aim.y)) return;
-        bs.add(offsets.BattleScreen_shootStickX).writeS32(aim.x | 0);
-        bs.add(offsets.BattleScreen_shootStickY).writeS32(aim.y | 0);
+        writeManualFirePoint(bs, aim.x, aim.y);
         args[3] = ptr(aim.x | 0);
         args[4] = ptr(aim.y | 0);
     } catch (_) {}
@@ -155,8 +155,7 @@ export function onActivateSkillEnter(args) {
         lastAimFireMs = now;
         if (!isFinite(aim.x) || !isFinite(aim.y)) return;
         if (bs && !bs.isNull()) {
-            bs.add(offsets.BattleScreen_shootStickX).writeS32(aim.x | 0);
-            bs.add(offsets.BattleScreen_shootStickY).writeS32(aim.y | 0);
+            writeManualFirePoint(bs, aim.x, aim.y);
         }
         args[1] = ptr(aim.x | 0);
         args[2] = ptr(aim.y | 0);

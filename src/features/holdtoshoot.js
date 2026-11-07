@@ -33,8 +33,17 @@ function readAimPoint(battleScreen) {
     try {
         const bs = battleScreen || battleScreenPtr;
         if (!bs || bs.isNull()) return null;
-        const x = bs.add(offsets.BattleScreen_shootStickX).readS32();
-        const y = bs.add(offsets.BattleScreen_shootStickY).readS32();
+        let x = 0, y = 0;
+        try {
+            x = bs.add(3844).readS32();
+            y = bs.add(3848).readS32();
+        } catch (_) {}
+        if (!x && !y && typeof offsets.BattleScreen_shootStickX === "number") {
+            try {
+                x = bs.add(offsets.BattleScreen_shootStickX).readS32();
+                y = bs.add(offsets.BattleScreen_shootStickY).readS32();
+            } catch (_) {}
+        }
         if (!isFinite(x) || !isFinite(y) || (x === 0 && y === 0)) return null;
         return { x: x, y: y };
     } catch (_) {
@@ -77,8 +86,12 @@ export function onUpdateMovementEnter(args, now) {
     let attackHeld = false;
     let superHeld = false;
     try {
-        attackHeld = battleScreen.add(0x1041).readU8() === 1;
-        superHeld   = battleScreen.add(0x1042).readU8() === 1;
+        attackHeld = battleScreen.add(3793).readU8() === 1 ||
+                     battleScreen.add(0xf79).readU8() === 1 ||
+                     battleScreen.add(0x1041).readU8() === 1;
+        superHeld   = battleScreen.add(3794).readU8() === 1 ||
+                     battleScreen.add(0xf7a).readU8() === 1 ||
+                     battleScreen.add(0x1042).readU8() === 1;
     } catch (_) {}
     handleMovementAndCombatAssist(battleScreen, attackHeld, superHeld, now);
 }
