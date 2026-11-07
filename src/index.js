@@ -145,6 +145,10 @@ function finishInstall(mod) {
         }
     });
 
+    try {
+        initMenu(mod);
+    } catch (_) {}
+
     _installed = true;
     return true;
 }
