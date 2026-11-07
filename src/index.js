@@ -3,11 +3,11 @@ import { initFunctions } from "./core/functions.js";
 import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scan.js";
 import { installTileMapWatcher } from "./utils/walls.js";
 import { setupLicense } from "./utils/license.js";
-import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot, setAimbotOptions } from "./features/aimbot.js";
-import { tryKillauraFire, resetKillaura, setKillauraOptions } from "./features/killaura.js";
-import { onUpdateMovementEnter, resetHoldToShoot, setHoldToShootOptions } from "./features/holdtoshoot.js";
-import { updateAutododge, resetAutododge, setAutododgeOptions } from "./features/autododge.js";
-import { updateAntiAfk, resetAntiAfk, setAntiAfkOptions } from "./features/antiafk.js";
+import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot } from "./features/aimbot.js";
+import { tryKillauraFire, resetKillaura } from "./features/killaura.js";
+import { onUpdateMovementEnter, resetHoldToShoot } from "./features/holdtoshoot.js";
+import { updateAutododge, resetAutododge } from "./features/autododge.js";
+import { updateAntiAfk, resetAntiAfk } from "./features/antiafk.js";
 import { flags } from "./utils/flags.js";
 
 export { flags };
@@ -168,34 +168,5 @@ export function startAgent() {
     scheduleRetry();
     return false;
 }
-
-rpc.exports = {
-    start() {
-        return startAgent();
-    },
-    setAimbot(opts) {
-        setAimbotOptions(opts || {});
-    },
-    setKillaura(opts) {
-        setKillauraOptions(opts || {});
-    },
-    setHoldToShoot(opts) {
-        setHoldToShootOptions(opts || {});
-    },
-    setAutododge(opts) {
-        setAutododgeOptions(opts || {});
-    },
-    setAntiAfk(opts) {
-        setAntiAfkOptions(opts || {});
-    },
-    getFlags() {
-        return flags;
-    },
-    setFlags(opts) {
-        if (opts && typeof opts === "object") {
-            Object.assign(flags, opts);
-        }
-    }
-};
 
 startAgent();
