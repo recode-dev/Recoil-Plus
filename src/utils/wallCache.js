@@ -1,5 +1,7 @@
 import { offsets } from "../core/offsets.js";
 import { getFunctions } from "../core/functions.js";
+import { battleState } from "../core/scanner.js";
+import { distSqPointToSegment } from "../helpers/dodge_kinds.js";
 
 const SUBTILES_PER_TILE = 300;
 const FLAG_BLOCKS_PROJECTILE = 64;
@@ -207,4 +209,18 @@ export function clipLineAgainstProjectileBlockers(x0, y0, x1, y1) {
         }
     }
     return result;
+}
+
+export function lineBlockedByBallOrWall(fromX, fromY, toX, toY) {
+    try {
+        if (getCollisionMap()) return !raycastTilesClear(fromX, fromY, toX, toY, 64);
+    } catch (_) {}
+    try {
+        const pickups = battleState.pickups || [];
+        for (let i = 0; i < pickups.length; i++) {
+            const p = pickups[i];
+            if (p && distSqPointToSegment(p.x, p.y, fromX, fromY, toX, toY) < 52900) return true;
+        }
+    } catch (_) {}
+    return false;
 }

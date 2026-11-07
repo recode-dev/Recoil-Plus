@@ -1,9 +1,16 @@
 import { offsets } from "../core/offsets.js";
 import { getFunctions } from "../core/functions.js";
-import { battleState, enemyVelocityTracks, ballPresent, FREE_MODE, PROJECTILE_SPEED_BY_BRAWLER_ID, DEFAULT_RANGE_BY_BRAWLER_ID, RANGE_BY_BRAWLER_NAME, powerupClassIds } from "../core/scanner.js";
-import { getCollisionMap, raycastTilesClear } from "../utils/walls.js";
+import { battleState, enemyVelocityTracks, ballPresent, FREE_MODE } from "../core/scanner.js";
 import { writeManualFirePoint } from "../core/commands.js";
 import { flags } from "../utils/flags.js";
+import { getCollisionMap, raycastTilesClear, lineBlockedByBallOrWall } from "../utils/wallCache.js";
+import {
+    powerupClassIds,
+    powerupNameNeedles,
+    PROJECTILE_SPEED_BY_BRAWLER_ID,
+    DEFAULT_RANGE_BY_BRAWLER_ID,
+    RANGE_BY_BRAWLER_NAME
+} from "../utils/brawlerName.js";
 
 export const aimbotConfig = {
     enabled: true,
@@ -14,16 +21,6 @@ export const aimbotConfig = {
     reactionMs: 0,
     targetMode: "NEAR"
 };
-
-export function setAimbotOptions(opts = {}) {
-    if (typeof opts.enabled === "boolean") aimbotConfig.enabled = opts.enabled;
-    if (typeof opts.predictEnabled === "boolean") aimbotConfig.predictEnabled = opts.predictEnabled;
-    if (typeof opts.projectileSpeed === "number") aimbotConfig.projectileSpeed = opts.projectileSpeed | 0;
-    if (typeof opts.leadScale === "number") aimbotConfig.leadScale = opts.leadScale;
-    if (typeof opts.maxRange === "number") aimbotConfig.maxRange = opts.maxRange | 0;
-    if (typeof opts.reactionMs === "number") aimbotConfig.reactionMs = opts.reactionMs | 0;
-    if (opts.targetMode === "NEAR" || opts.targetMode === "FAST" || opts.targetMode === "LOWID") aimbotConfig.targetMode = opts.targetMode;
-}
 
 export var lastAimFireMs = 0;
 
@@ -56,36 +53,6 @@ function predictEnemyPositionByGid(gid, myX, myY) {
         }
     }
     return null;
-}
-
-function distancePointToSegmentSq(px, py, ax, ay, bx, by) {
-    const dx = bx - ax;
-    const dy = by - ay;
-    const fx = px - ax;
-    const fy = py - ay;
-    const lenSq = dx * dx + dy * dy;
-    let t = lenSq > 0 ? (fx * dx + fy * dy) / lenSq : 0;
-    if (t < 0) t = 0;
-    if (t > 1) t = 1;
-    const cx = ax + dx * t;
-    const cy = ay + dy * t;
-    const ex = px - cx;
-    const ey = py - cy;
-    return ex * ex + ey * ey;
-}
-
-export function lineBlockedByBallOrWall(fromX, fromY, toX, toY) {
-    try {
-        if (getCollisionMap()) return !raycastTilesClear(fromX, fromY, toX, toY, 64);
-    } catch (_) {}
-    try {
-        const pickups = battleState.pickups || [];
-        for (let i = 0; i < pickups.length; i++) {
-            const p = pickups[i];
-            if (p && distancePointToSegmentSq(p.x, p.y, fromX, fromY, toX, toY) < 52900) return true;
-        }
-    } catch (_) {}
-    return false;
 }
 
 export function isTargetAllowed(target) {
