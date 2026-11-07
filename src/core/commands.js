@@ -30,7 +30,6 @@ export function writeManualFirePoint(battleScreen, x, y) {
         const xi = x | 0;
         const yi = y | 0;
 
-        // Dynamic offsets from offsets.js if present
         if (typeof offsets.BattleScreen_shootStickX === "number" && typeof offsets.BattleScreen_shootStickY === "number") {
             try {
                 battleScreen.add(offsets.BattleScreen_shootStickX).writeS32(xi);
@@ -40,7 +39,6 @@ export function writeManualFirePoint(battleScreen, x, y) {
             } catch (_) {}
         }
 
-        // Inline offsets as in jirgear
         try {
             battleScreen.add(3844).writeS32(xi);
             battleScreen.add(3848).writeS32(yi);
@@ -62,7 +60,6 @@ export function fireMainAttack(battleScreen, ownCharacter, x, y, hold) {
 
         writeManualFirePoint(battleScreen, x, y);
 
-        // Native fire as in jirgear (BattleScreen_handleAutoShoot / fireWrapperFn)
         if (fns.BattleScreen_handleAutoShoot) {
             try {
                 fns.BattleScreen_handleAutoShoot(battleScreen, ownCharacter);
