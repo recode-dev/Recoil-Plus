@@ -92,6 +92,18 @@ function finishInstall(mod) {
         }
     });
 
+    Interceptor.attach(mod.base.add(offsets.BattleScreen_handleAutoShoot), {
+        onEnter(args) {
+            try {
+                const bs = args[0];
+                if (bs && !bs.isNull()) {
+                    setBattleScreenPtr(bs);
+                    onFireEnter(args);
+                }
+            } catch (_) {}
+        }
+    });
+
     Interceptor.attach(mod.base.add(offsets.BattleScreen_tryToActivateSkill), {
         onEnter(args) {
             try {
