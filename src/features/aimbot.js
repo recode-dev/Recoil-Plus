@@ -1,6 +1,6 @@
 import { offsets } from "../core/offsets.js";
 import { getFunctions } from "../core/functions.js";
-import { battleState, enemyVelocityTracks, ballPresent, FREE_MODE, PROJECTILE_SPEED_BY_BRAWLER_ID, DEFAULT_RANGE_BY_BRAWLER_ID, RANGE_BY_BRAWLER_NAME, powerupClassIds } from "../core/scan.js";
+import { battleState, enemyVelocityTracks, ballPresent, FREE_MODE, PROJECTILE_SPEED_BY_BRAWLER_ID, DEFAULT_RANGE_BY_BRAWLER_ID, RANGE_BY_BRAWLER_NAME, powerupClassIds } from "../core/scanner.js";
 import { getCollisionMap, raycastTilesClear } from "../utils/walls.js";
 import { writeManualFirePoint } from "../core/commands.js";
 import { flags } from "../utils/flags.js";

@@ -1,6 +1,6 @@
 import { offsets } from "./core/offsets.js";
 import { initFunctions } from "./core/functions.js";
-import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scan.js";
+import { updateBattleScan, resetBattleScan, setBattleScreenPtr } from "./core/scanner.js";
 import { installTileMapWatcher } from "./utils/walls.js";
 import { setupLicense } from "./utils/license.js";
 import { onFireEnter, onActivateSkillEnter, onGetClosestTargetLeave, resetAimbot } from "./features/aimbot.js";

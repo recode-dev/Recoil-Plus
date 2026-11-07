@@ -1,4 +1,4 @@
-import { battleState } from "../core/scan.js";
+import { battleState } from "../core/scanner.js";
 import { moveToPoint } from "../core/commands.js";
 import { flags } from "../utils/flags.js";
 

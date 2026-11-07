@@ -1,3 +1,7 @@
+import { setStringCtor, makeScString } from "../core/scstring.js";
+
+export { makeScString };
+
 export const uiOffsets = Object.freeze({
     Stage_sm_pInstance: 0x1125e28,
     Stage_addChild: 0xba2d54,
@@ -50,6 +54,7 @@ export function initNativeUi(base) {
             String_String: new NativeFunction(base.add(uiOffsets.String_String), "pointer", ["pointer", "pointer"]),
             DisplayObject_setXY: new NativeFunction(base.add(uiOffsets.DisplayObject_setXY), "void", ["pointer", "float", "float"])
         };
+        if (nativeUi && nativeUi.String_String) setStringCtor(nativeUi.String_String);
     } catch (_) {
         nativeUi = null;
     }
@@ -64,16 +69,6 @@ export function allocUtf8(str) {
     } catch (_) {
         return NULL;
     }
-}
-
-export function makeScString(str) {
-    const sc = alloc(32);
-    if (sc && !sc.isNull() && nativeUi && nativeUi.String_String) {
-        try {
-            nativeUi.String_String(sc, allocUtf8(str));
-        } catch (_) {}
-    }
-    return sc;
 }
 
 export function setXY(ptr, x, y) {
