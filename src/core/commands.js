@@ -85,3 +85,21 @@ export function fireMainAttack(battleScreen, ownCharacter, x, y, hold) {
         return false;
     }
 }
+
+export function fireSuperAttack(battleScreen, ownCharacter, x, y) {
+    try {
+        if (!battleScreen || battleScreen.isNull() || !ownCharacter || ownCharacter.isNull()) return false;
+        const fns = getFunctions();
+        writeManualFirePoint(battleScreen, x, y);
+        if (fns.BattleScreen_activateSkill) {
+            try {
+                const skill = fns.LogicCharacterClient_getWeaponSkillClient ? fns.LogicCharacterClient_getWeaponSkillClient(ownCharacter) : null;
+                fns.BattleScreen_activateSkill(battleScreen, x | 0, y | 0, ownCharacter, skill, 0, 0);
+                return true;
+            } catch (_) {}
+        }
+        return false;
+    } catch (_) {
+        return false;
+    }
+}
