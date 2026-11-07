@@ -9,7 +9,6 @@ import { onUpdateMovementEnter, resetHoldToShoot } from "./features/holdtoshoot.
 import { updateAutododge, resetAutododge } from "./features/autododge.js";
 import { updateAntiAfk, resetAntiAfk } from "./features/antiafk.js";
 import { flags } from "./utils/flags.js";
-import { initMenu } from "./ui/menu.js";
 
 export { flags };
 
@@ -145,8 +144,6 @@ function finishInstall(mod) {
             } catch (_) {}
         }
     });
-
-    initMenu(mod);
 
     _installed = true;
     return true;
